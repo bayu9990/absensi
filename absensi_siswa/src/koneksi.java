@@ -29,9 +29,6 @@ public class koneksi {
         }
         return koneksi;
     }
-    public static void main(String[] args) {
-        getKoneksi();
-    }
 
     PreparedStatement prepareStatement(String sql) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
