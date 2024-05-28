@@ -73,7 +73,7 @@ public class absen extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(218, Short.MAX_VALUE)
+                .addContainerGap(211, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
@@ -114,10 +114,16 @@ public class absen extends javax.swing.JFrame {
 
     private void rekap_mingguanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rekap_mingguanActionPerformed
         // TODO add your handling code here:
+        this.dispose();
+        rekapminggu rm = new rekapminggu ();
+        rm.setVisible(true);
     }//GEN-LAST:event_rekap_mingguanActionPerformed
 
     private void rekap_bulananActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rekap_bulananActionPerformed
         // TODO add your handling code here:
+        this.dispose();
+        rekapbulan rb = new rekapbulan ();
+        rb.setVisible(true);
     }//GEN-LAST:event_rekap_bulananActionPerformed
 
     private void adminActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_adminActionPerformed
