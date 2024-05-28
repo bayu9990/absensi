@@ -19,8 +19,10 @@ public class login extends javax.swing.JFrame {
     /**
      * Creates new form login
      */
+    private final Connection conn;
     public login() {
         initComponents();
+        conn = koneksi.getKoneksi();
     }
 
     /**
@@ -151,8 +153,7 @@ public class login extends javax.swing.JFrame {
     private void button_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_loginActionPerformed
         // TODO add your handling code here:
         try {
-            Connection c = koneksi.getKoneksi();
-            Statement s = c.createStatement();
+            Statement s = conn.createStatement();
 
             String sql = "SELECT * FROM user WHERE username ='" + textfiled_username.getText()
             +"' and password='"+ password.getText()+"'";

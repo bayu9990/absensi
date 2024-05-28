@@ -18,9 +18,11 @@ import javax.swing.table.DefaultTableModel;
 public class admin extends javax.swing.JFrame {
 
     private int foundID = -1;
+    private final Connection conn;
 
     public admin() {
         initComponents();
+        conn = koneksi.getKoneksi();
         show_data(tabel); // Memanggil show_data untuk pertama kali saat form dibuka
     }
     
@@ -247,9 +249,8 @@ public class admin extends javax.swing.JFrame {
         String nameToSearch = search.getText();
         if (!nameToSearch.isEmpty()) {
             try {
-                Connection con = koneksi.getKoneksi();
                 String sql = "SELECT * FROM siswa WHERE nama = ?";
-                PreparedStatement stm = con.prepareStatement(sql);
+                PreparedStatement stm = conn.prepareStatement(sql);
                 stm.setString(1, nameToSearch);
                 ResultSet rs = stm.executeQuery();
                 if (rs.next()) {
@@ -277,8 +278,7 @@ public class admin extends javax.swing.JFrame {
         // TODO add your handling code here:
         try {
             String sql = "INSERT INTO siswa (nama, no_absen, kelas, jenis_kelamin) VALUES (?, ?, ?, ?)";
-            Connection con = koneksi.getKoneksi();
-            PreparedStatement stmnt = con.prepareStatement(sql);
+            PreparedStatement stmnt = conn.prepareStatement(sql);
             stmnt.setString(1, nama.getText());
             stmnt.setString(2, no_absen.getText());
             stmnt.setString(3, kelas.getText());
@@ -300,8 +300,7 @@ public class admin extends javax.swing.JFrame {
         if (foundID != -1) {
             try {
                 String sql = "UPDATE siswa SET nama = ?, no_absen = ?, kelas = ?, jenis_kelamin = ? WHERE id = ?";
-                Connection con = koneksi.getKoneksi();
-                PreparedStatement stmnt = con.prepareStatement(sql);
+                PreparedStatement stmnt = conn.prepareStatement(sql);
                 stmnt.setString(1, nama.getText());
                 stmnt.setString(2, no_absen.getText());
                 stmnt.setString(3, kelas.getText());
@@ -328,8 +327,7 @@ public class admin extends javax.swing.JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
                     String sql = "DELETE FROM siswa WHERE id = ?";
-                    Connection con = koneksi.getKoneksi();
-                    PreparedStatement stmnt = con.prepareStatement(sql);
+                    PreparedStatement stmnt = conn.prepareStatement(sql);
                     stmnt.setInt(1, foundID);
                     stmnt.executeUpdate();
                     JOptionPane.showMessageDialog(null, "Data Berhasil Dihapus");
@@ -377,9 +375,8 @@ public class admin extends javax.swing.JFrame {
         tabelModel.addColumn("Jenis Kelamin");
 
         try {
-            Connection con = koneksi.getKoneksi();
             String sql = "SELECT * FROM siswa";
-            PreparedStatement stmnt = con.prepareStatement(sql);
+            PreparedStatement stmnt = conn.prepareStatement(sql);
             ResultSet rs = stmnt.executeQuery();
 
             while (rs.next()) {

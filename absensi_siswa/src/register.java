@@ -15,12 +15,14 @@ import java.sql.SQLException;
  * @author muhro
  */
 public class register extends javax.swing.JFrame {
-
+    
+    private final Connection conn;
     /**
      * Creates new form register
      */
     public register() {
         initComponents();
+        conn = koneksi.getKoneksi();
     }
 
     /**
@@ -161,12 +163,10 @@ public class register extends javax.swing.JFrame {
 
     private void registerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerActionPerformed
         // TODO add your handling code here:
-    // Retrieve user input
+    
     String username = register_username.getText();
     String password = new String(register_password.getPassword());
     
-    // JDBC objects
-    Connection con = null;
     PreparedStatement pstmt = null;
 
     try {
@@ -175,11 +175,10 @@ public class register extends javax.swing.JFrame {
         String dbPassword = "";
         
         // Establishing connection
-        con = DriverManager.getConnection(url, dbUser, dbPassword);
         
         // SQL query for inserting data
         String sql = "INSERT INTO user (username, password) VALUES (?, ?)";
-        pstmt = con.prepareStatement(sql);
+        pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, username);
         pstmt.setString(2, password);
         
@@ -195,7 +194,7 @@ public class register extends javax.swing.JFrame {
         // Menutup koneksi dan statement
         try {
             if (pstmt != null) pstmt.close();
-            if (con != null) con.close();
+            if (conn != null) conn.close();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }

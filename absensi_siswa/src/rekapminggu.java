@@ -19,26 +19,12 @@ import javax.swing.table.DefaultTableModel;
  */
 public class rekapminggu extends javax.swing.JFrame {
 
-    private Connection conn; 
+    private final Connection conn; 
     
-    /**
-     * Creates new form rekapminggu
-     */
     public rekapminggu() {
         initComponents();
-        connectToDatabase();
+        conn = koneksi.getKoneksi();
         loadKelasData();
-    }
-    
-    private void connectToDatabase() {
-        try {
-            String url = "jdbc:mysql://localhost:3306/db_absensi";
-            String user = "root"; 
-            String password = ""; 
-            conn = DriverManager.getConnection(url, user, password);
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error connecting to database: " + ex.getMessage());
-        }
     }
     
     private void loadKelasData() {

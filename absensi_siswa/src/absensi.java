@@ -16,26 +16,12 @@ import javax.swing.table.DefaultTableModel;
  */
 public class absensi extends javax.swing.JFrame {
 
-    private Connection conn;
-
-    /**
-     * Creates new form absensi
-     */
+    private final Connection conn;
+    
     public absensi() {
         initComponents();
-        connectToDatabase();
+        conn = koneksi.getKoneksi();
         loadClasses();
-    }
-    
-    private void connectToDatabase() {
-        try {
-            String url = "jdbc:mysql://localhost:3306/db_absensi";
-            String user = "root"; // Ganti dengan username database Anda
-            String password = ""; // Ganti dengan password database Anda
-            conn = DriverManager.getConnection(url, user, password);
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error connecting to database: " + ex.getMessage());
-        }
     }
     
     private void loadClasses() {
