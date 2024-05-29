@@ -399,7 +399,7 @@ public class rekapminggu extends javax.swing.JFrame {
                 }
                 jTable2.setModel(tabel);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Error bro");
+                JOptionPane.showMessageDialog(null, "Error");
                 System.out.println(e.getMessage());
             }
         } else {
