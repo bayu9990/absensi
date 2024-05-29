@@ -67,6 +67,19 @@ public class absensi extends javax.swing.JFrame {
         return ids;
     }
 
+    private ResultSet loadKeterangan(Date dates) {
+        ResultSet rs = null;
+        try {
+            String query = "SELECT keterangan,siswa_id FROM pertemuan WHERE waktu = ?";
+            PreparedStatement smt = conn.prepareStatement(query,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            smt.setDate(1, dates);
+            rs = smt.executeQuery();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading data : " + ex.getMessage());
+        }
+        return rs;
+    }
+
     private void loadDataByClass(String kelas) {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0);
@@ -77,12 +90,37 @@ public class absensi extends javax.swing.JFrame {
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, kelas);
             ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("no_absen"),
-                    rs.getString("nama"),
-                    rs.getString("kelas"),});
+            ResultSet rsPertemuan = loadKeterangan(Date.valueOf(tanggal));
+            if (rsPertemuan.next()) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String keterangan = "";
+
+                    rsPertemuan.beforeFirst();
+                    while (rsPertemuan.next()) {
+                        if (rsPertemuan.getInt("siswa_id") == id) {
+                            keterangan = rsPertemuan.getString("Keterangan");
+                            break;
+                        }
+                    }
+                    model.addRow(new Object[]{
+                        rs.getString("no_absen"),
+                        rs.getString("nama"),
+                        rs.getString("kelas"),
+                        keterangan,
+                    });
+
+                }
+            } else {
+                while (rs.next()) {
+                    model.addRow(new Object[]{
+                        rs.getString("no_absen"),
+                        rs.getString("nama"),
+                        rs.getString("kelas")
+                    });
+                }
             }
+
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error loading data : " + ex.getMessage());
         }
@@ -97,7 +135,6 @@ public class absensi extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        refresh = new javax.swing.JButton();
         kelas = new javax.swing.JComboBox<>();
         jLabel2 = new javax.swing.JLabel();
         submit = new javax.swing.JButton();
@@ -105,15 +142,9 @@ public class absensi extends javax.swing.JFrame {
         jTable1 = new javax.swing.JTable();
         pertemuan_tanggal = new javax.swing.JLabel();
         date = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        refresh.setText("Refresh");
-        refresh.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                refreshActionPerformed(evt);
-            }
-        });
 
         kelas.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-Pilih-" }));
         kelas.addActionListener(new java.awt.event.ActionListener() {
@@ -166,7 +197,6 @@ public class absensi extends javax.swing.JFrame {
             jTable1.getColumnModel().getColumn(0).setPreferredWidth(5);
             jTable1.getColumnModel().getColumn(1).setResizable(false);
             jTable1.getColumnModel().getColumn(2).setResizable(false);
-            jTable1.getColumnModel().getColumn(3).setCellEditor(null);
         }
 
         pertemuan_tanggal.setFont(new java.awt.Font("Gill Sans MT", 1, 12)); // NOI18N
@@ -175,31 +205,37 @@ public class absensi extends javax.swing.JFrame {
         date.setFont(new java.awt.Font("Gill Sans MT", 1, 18)); // NOI18N
         date.setText("Tanggal");
 
+        jButton1.setText("Kembali");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(73, 73, 73)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(refresh)
-                        .addGap(826, 826, 826))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel2)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(kelas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(submit))
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 971, Short.MAX_VALUE)))
-                .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(date)
                     .addComponent(pertemuan_tanggal))
                 .addGap(442, 442, 442))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(73, 73, 73)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton1)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(kelas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(submit))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 971, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -209,7 +245,7 @@ public class absensi extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(date, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(12, 12, 12)
-                .addComponent(refresh)
+                .addComponent(jButton1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(submit)
@@ -227,17 +263,43 @@ public class absensi extends javax.swing.JFrame {
     private void submitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitActionPerformed
         // TODO add your handling code here:
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-
+        String insert = "INSERT INTO pertemuan (keterangan, waktu, siswa_id) VALUES (?, ?, ?)";
+        String update = "UPDATE pertemuan SET keterangan = ?, waktu = ? WHERE siswa_id = ? AND waktu = ?";
+        PreparedStatement stmt;
+        
         try {
-            String query = "INSERT INTO pertemuan (keterangan, waktu, siswa_id) VALUES (?, ?, ?)";
-            PreparedStatement stmt = conn.prepareStatement(query);
-
-            for (int row = 0; row < model.getRowCount(); row++) {
+            
+            if(loadKeterangan(Date.valueOf(tanggal)).next()){
+                stmt = conn.prepareStatement(update);
+                for (int row = 0; row < model.getRowCount(); row++) {
                 int abs = Integer.parseInt((String) model.getValueAt(row, 0));
                 String kls = (String) model.getValueAt(row, 2);
                 int id = getSiswaId(kls, abs);
                 System.out.println(id);
-                
+
+                TableCellEditor editor = jTable1.getColumnModel().getColumn(3).getCellEditor();
+                Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 3), false, row, 3);
+
+                if (editorComponent instanceof JComboBox) {
+                    JComboBox<String> comboBox = (JComboBox<String>) editorComponent;
+                    String selectedValue = (String) comboBox.getSelectedItem();
+
+                    stmt.setString(1, selectedValue);
+                    stmt.setDate(2, Date.valueOf(tanggal));
+                    stmt.setInt(3, id);
+                    stmt.setDate(4, Date.valueOf(tanggal));
+
+                    stmt.executeUpdate();
+                }
+            }
+            }else{
+                stmt = conn.prepareStatement(insert);
+                for (int row = 0; row < model.getRowCount(); row++) {
+                int abs = Integer.parseInt((String) model.getValueAt(row, 0));
+                String kls = (String) model.getValueAt(row, 2);
+                int id = getSiswaId(kls, abs);
+                System.out.println(id);
+
                 TableCellEditor editor = jTable1.getColumnModel().getColumn(3).getCellEditor();
                 Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 3), false, row, 3);
 
@@ -252,32 +314,13 @@ public class absensi extends javax.swing.JFrame {
                     stmt.executeUpdate();
                 }
             }
+            }
+
+            
             JOptionPane.showMessageDialog(this, "Absen pada tanggal " + tanggal + " Disimpan");
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error saving data to database: " + ex.getMessage());
         }
-//        String selectedNama = nama.getSelectedItem().toString();
-//        String selectedKelas = kelas.getSelectedItem().toString();
-//        String selectedPertemuan = pertemuan.getSelectedItem().toString();
-//        String selectedKeterangan = keterangan.getSelectedItem().toString();
-//
-//        try {
-//            String query = "UPDATE siswa SET keterangan = ? WHERE nama = ? AND kelas = ? AND pertemuan = ?";
-//            PreparedStatement stmt = conn.prepareStatement(query);
-//            stmt.setString(1, selectedKeterangan);
-//            stmt.setString(2, selectedNama);
-//            stmt.setString(3, selectedKelas);
-//            stmt.setString(4, selectedPertemuan);
-//            int rowsUpdated = stmt.executeUpdate();
-//            if (rowsUpdated > 0) {
-//                JOptionPane.showMessageDialog(this, "Data updated successfully!");
-//                loadDataByClass(selectedKelas); // Refresh data based on selected class
-//            } else {
-//                JOptionPane.showMessageDialog(this, "Data not found or not updated.");
-//            }
-//        } catch (SQLException ex) {
-//            JOptionPane.showMessageDialog(this, "Error updating data: " + ex.getMessage());
-//        }
     }//GEN-LAST:event_submitActionPerformed
 
     private void kelasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_kelasActionPerformed
@@ -288,12 +331,12 @@ public class absensi extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_kelasActionPerformed
 
-    private void refreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        if (!kelas.getSelectedItem().toString().equals("-Pilih-")) {
-            loadDataByClass(kelas.getSelectedItem().toString());
-        }
-    }//GEN-LAST:event_refreshActionPerformed
+        this.dispose();
+        absen absen = new absen();
+        absen.setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -332,12 +375,12 @@ public class absensi extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel date;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JComboBox<String> kelas;
     private javax.swing.JLabel pertemuan_tanggal;
-    private javax.swing.JButton refresh;
     private javax.swing.JButton submit;
     // End of variables declaration//GEN-END:variables
 }
