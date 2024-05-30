@@ -86,7 +86,7 @@ public class absensi extends javax.swing.JFrame {
         jTable1.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(ket));
 
         try {
-            String query = "SELECT id,no_absen,nama, kelas FROM siswa WHERE kelas = ?";
+            String query = "SELECT id,no_absen,nama, kelas FROM siswa WHERE kelas = ? ORDER BY no_absen";
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, kelas);
             ResultSet rs = stmt.executeQuery();
