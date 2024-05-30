@@ -12,6 +12,10 @@ import java.time.LocalDate;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import java.sql.Date;
+import java.time.DayOfWeek;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.table.TableCellEditor;
 
 /*
@@ -33,8 +37,22 @@ public class absensi extends javax.swing.JFrame {
         initComponents();
         conn = koneksi.getKoneksi();
         loadClasses();
-        date.setText(tanggal.toString());
+        date.setText(Days(tanggal.getDayOfWeek()) + ", " + tanggal.format(DateTimeFormatter.ofPattern("dd - MM - yyyy")));
         ket = new JComboBox(ketDesc);
+    }
+
+    private String Days(DayOfWeek dayOfWeek) {
+
+        Map<DayOfWeek, String> hariMap = new HashMap<>();
+        hariMap.put(DayOfWeek.MONDAY, "Senin");
+        hariMap.put(DayOfWeek.TUESDAY, "Selasa");
+        hariMap.put(DayOfWeek.WEDNESDAY, "Rabu");
+        hariMap.put(DayOfWeek.THURSDAY, "Kamis");
+        hariMap.put(DayOfWeek.FRIDAY, "Jumat");
+        hariMap.put(DayOfWeek.SATURDAY, "Sabtu");
+        hariMap.put(DayOfWeek.SUNDAY, "Minggu");
+
+        return hariMap.get(dayOfWeek);
     }
 
     private void loadClasses() {
@@ -71,7 +89,7 @@ public class absensi extends javax.swing.JFrame {
         ResultSet rs = null;
         try {
             String query = "SELECT keterangan,siswa_id FROM pertemuan WHERE waktu = ?";
-            PreparedStatement smt = conn.prepareStatement(query,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            PreparedStatement smt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             smt.setDate(1, dates);
             rs = smt.executeQuery();
         } catch (SQLException ex) {
@@ -107,8 +125,7 @@ public class absensi extends javax.swing.JFrame {
                         rs.getString("no_absen"),
                         rs.getString("nama"),
                         rs.getString("kelas"),
-                        keterangan,
-                    });
+                        keterangan,});
 
                 }
             } else {
@@ -216,26 +233,28 @@ public class absensi extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(date)
-                    .addComponent(pertemuan_tanggal))
-                .addGap(442, 442, 442))
+                    .addComponent(pertemuan_tanggal)
+                    .addComponent(date))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
-                .addGap(73, 73, 73)
+                .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton1)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(kelas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(submit))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 971, Short.MAX_VALUE))
-                .addContainerGap())
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(kelas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(submit))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.CENTER, javax.swing.GroupLayout.DEFAULT_SIZE, 1009, Short.MAX_VALUE))
+                        .addGap(21, 21, 21))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -265,61 +284,68 @@ public class absensi extends javax.swing.JFrame {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         String insert = "INSERT INTO pertemuan (keterangan, waktu, siswa_id) VALUES (?, ?, ?)";
         String update = "UPDATE pertemuan SET keterangan = ?, waktu = ? WHERE siswa_id = ? AND waktu = ?";
+        String verif = "SELECT * FROM pertemuan WHERE siswa_id = ?";
         PreparedStatement stmt;
-        
+
         try {
-            
-            if(loadKeterangan(Date.valueOf(tanggal)).next()){
-                stmt = conn.prepareStatement(update);
-                for (int row = 0; row < model.getRowCount(); row++) {
-                int abs = Integer.parseInt((String) model.getValueAt(row, 0));
-                String kls = (String) model.getValueAt(row, 2);
-                int id = getSiswaId(kls, abs);
-                System.out.println(id);
+            int abs = Integer.parseInt((String) model.getValueAt(0, 0));
+            String kls = (String) kelas.getSelectedItem();
+            int id = getSiswaId(kls, abs);
+            stmt = conn.prepareStatement(verif);
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                if (loadKeterangan(Date.valueOf(tanggal)).next()) {
+                    stmt = conn.prepareStatement(update);
+                    for (int row = 0; row < model.getRowCount(); row++) {
+                        abs = Integer.parseInt((String) model.getValueAt(row, 0));
+                        kls = (String) kelas.getSelectedItem();
+                        id = getSiswaId(kls, abs);
+                        System.out.println(id);
 
-                TableCellEditor editor = jTable1.getColumnModel().getColumn(3).getCellEditor();
-                Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 3), false, row, 3);
+                        TableCellEditor editor = jTable1.getColumnModel().getColumn(3).getCellEditor();
+                        Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 3), false, row, 3);
 
-                if (editorComponent instanceof JComboBox) {
-                    JComboBox<String> comboBox = (JComboBox<String>) editorComponent;
-                    String selectedValue = (String) comboBox.getSelectedItem();
+                        if (editorComponent instanceof JComboBox) {
+                            JComboBox<String> comboBox = (JComboBox<String>) editorComponent;
+                            String selectedValue = (String) comboBox.getSelectedItem();
 
-                    stmt.setString(1, selectedValue);
-                    stmt.setDate(2, Date.valueOf(tanggal));
-                    stmt.setInt(3, id);
-                    stmt.setDate(4, Date.valueOf(tanggal));
+                            stmt.setString(1, selectedValue);
+                            stmt.setDate(2, Date.valueOf(tanggal));
+                            stmt.setInt(3, id);
+                            stmt.setDate(4, Date.valueOf(tanggal));
 
-                    stmt.executeUpdate();
+                            stmt.executeUpdate();
+                        }
+                    }
                 }
-            }
-            }else{
+            } else {
                 stmt = conn.prepareStatement(insert);
                 for (int row = 0; row < model.getRowCount(); row++) {
-                int abs = Integer.parseInt((String) model.getValueAt(row, 0));
-                String kls = (String) model.getValueAt(row, 2);
-                int id = getSiswaId(kls, abs);
-                System.out.println(id);
+                    abs = Integer.parseInt((String) model.getValueAt(row, 0));
+                    kls = (String) kelas.getSelectedItem();
+                    id = getSiswaId(kls, abs);
+                    System.out.println(id);
 
-                TableCellEditor editor = jTable1.getColumnModel().getColumn(3).getCellEditor();
-                Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 3), false, row, 3);
+                    TableCellEditor editor = jTable1.getColumnModel().getColumn(3).getCellEditor();
+                    Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 3), false, row, 3);
 
-                if (editorComponent instanceof JComboBox) {
-                    JComboBox<String> comboBox = (JComboBox<String>) editorComponent;
-                    String selectedValue = (String) comboBox.getSelectedItem();
+                    if (editorComponent instanceof JComboBox) {
+                        JComboBox<String> comboBox = (JComboBox<String>) editorComponent;
+                        String selectedValue = (String) comboBox.getSelectedItem();
 
-                    stmt.setString(1, selectedValue);
-                    stmt.setDate(2, Date.valueOf(tanggal));
-                    stmt.setInt(3, id);
+                        stmt.setString(1, selectedValue);
+                        stmt.setDate(2, Date.valueOf(tanggal));
+                        stmt.setInt(3, id);
 
-                    stmt.executeUpdate();
+                        stmt.executeUpdate();
+                    }
                 }
             }
-            }
 
-            
             JOptionPane.showMessageDialog(this, "Absen pada tanggal " + tanggal + " Disimpan");
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error saving data to database: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error menyimpan absen : " + ex.getMessage());
         }
     }//GEN-LAST:event_submitActionPerformed
 
