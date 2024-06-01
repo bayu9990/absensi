@@ -86,42 +86,50 @@ public class absensi extends javax.swing.JFrame {
     }
 
     private ResultSet loadKeterangan(Date dates) {
-        ResultSet rs = null;
+        ResultSet rsAbsen = null;
         try {
-            String query = "SELECT keterangan,siswa_id FROM pertemuan WHERE waktu = ?";
-            PreparedStatement smt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            String query = "SELECT id_pertemuan,tgl FROM pertemuan WHERE tgl = ?";
+            PreparedStatement smt = conn.prepareStatement(query);
             smt.setDate(1, dates);
-            rs = smt.executeQuery();
+            ResultSet rs = smt.executeQuery();
+            if (rs.next()) {
+                String absen = "SELECT nis,ket FROM absen WHERE id_pertemuan = ?";
+                PreparedStatement smtAbsen = conn.prepareStatement(absen, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                smtAbsen.setInt(1, rs.getInt("id_pertemuan"));
+                rsAbsen = smtAbsen.executeQuery();
+                return rsAbsen;
+            }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error loading data : " + ex.getMessage());
         }
-        return rs;
+        return rsAbsen;
     }
 
     private void loadDataByClass(String kelas) {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0);
-        jTable1.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(ket));
+        jTable1.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(ket));
 
         try {
-            String query = "SELECT id,no_absen,nama, kelas FROM siswa WHERE kelas = ? ORDER BY no_absen";
+            String query = "SELECT nis,no_absen,nama, kelas FROM siswa WHERE kelas = ? ORDER BY no_absen";
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, kelas);
             ResultSet rs = stmt.executeQuery();
             ResultSet rsPertemuan = loadKeterangan(Date.valueOf(tanggal));
-            if (rsPertemuan.next()) {
+            if (rsPertemuan != null) {
                 while (rs.next()) {
-                    int id = rs.getInt("id");
+                    int id = rs.getInt("nis");
                     String keterangan = "";
 
                     rsPertemuan.beforeFirst();
                     while (rsPertemuan.next()) {
-                        if (rsPertemuan.getInt("siswa_id") == id) {
-                            keterangan = rsPertemuan.getString("Keterangan");
+                        if (rsPertemuan.getInt("nis") == id) {
+                            keterangan = rsPertemuan.getString("ket");
                             break;
                         }
                     }
                     model.addRow(new Object[]{
+                        rs.getInt("nis"),
                         rs.getString("no_absen"),
                         rs.getString("nama"),
                         rs.getString("kelas"),
@@ -131,6 +139,7 @@ public class absensi extends javax.swing.JFrame {
             } else {
                 while (rs.next()) {
                     model.addRow(new Object[]{
+                        rs.getInt("nis"),
                         rs.getString("no_absen"),
                         rs.getString("nama"),
                         rs.getString("kelas")
@@ -181,20 +190,20 @@ public class absensi extends javax.swing.JFrame {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "No absen", "Nama", "Kelas", "Keterangan"
+                "Nis", "No absen", "Nama", "Kelas", "Keterangan"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class
+                java.lang.Object.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, true
+                false, false, false, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -211,9 +220,10 @@ public class absensi extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jTable1);
         if (jTable1.getColumnModel().getColumnCount() > 0) {
             jTable1.getColumnModel().getColumn(0).setResizable(false);
-            jTable1.getColumnModel().getColumn(0).setPreferredWidth(5);
             jTable1.getColumnModel().getColumn(1).setResizable(false);
+            jTable1.getColumnModel().getColumn(1).setPreferredWidth(5);
             jTable1.getColumnModel().getColumn(2).setResizable(false);
+            jTable1.getColumnModel().getColumn(3).setResizable(false);
         }
 
         pertemuan_tanggal.setFont(new java.awt.Font("Gill Sans MT", 1, 12)); // NOI18N
@@ -282,65 +292,71 @@ public class absensi extends javax.swing.JFrame {
     private void submitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitActionPerformed
         // TODO add your handling code here:
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        String insert = "INSERT INTO pertemuan (keterangan, waktu, siswa_id) VALUES (?, ?, ?)";
-        String update = "UPDATE pertemuan SET keterangan = ?, waktu = ? WHERE siswa_id = ? AND waktu = ?";
-        String verif = "SELECT * FROM pertemuan WHERE siswa_id = ?";
-        PreparedStatement stmt;
+        String insert = "INSERT INTO pertemuan (tgl) VALUES (?) ON DUPLICATE KEY UPDATE tgl = VALUES(tgl)";
+        String lastID = "SELECT id_pertemuan FROM pertemuan WHERE tgl = ?";
+        String verif = "SELECT * FROM absen WHERE id_pertemuan = ? AND nis = ?";
+        String insertAbsen = "INSERT INTO absen (nis, id_pertemuan, ket) VALUES (?, ?, ?)";
+        String updateAbsen = "UPDATE absen SET nis = ?,ket = ? WHERE id_pertemuan = ? AND nis = ?";
 
         try {
-            int abs = Integer.parseInt((String) model.getValueAt(0, 0));
-            String kls = (String) kelas.getSelectedItem();
-            int id = getSiswaId(kls, abs);
-            stmt = conn.prepareStatement(verif);
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                if (loadKeterangan(Date.valueOf(tanggal)).next()) {
-                    stmt = conn.prepareStatement(update);
-                    for (int row = 0; row < model.getRowCount(); row++) {
-                        abs = Integer.parseInt((String) model.getValueAt(row, 0));
-                        kls = (String) kelas.getSelectedItem();
-                        id = getSiswaId(kls, abs);
-                        System.out.println(id);
+            try (PreparedStatement stmtPertemuan = conn.prepareStatement(insert)) {
+                stmtPertemuan.setDate(1, Date.valueOf(tanggal));
+                stmtPertemuan.executeUpdate();
+            }
 
-                        TableCellEditor editor = jTable1.getColumnModel().getColumn(3).getCellEditor();
-                        Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 3), false, row, 3);
-
-                        if (editorComponent instanceof JComboBox) {
-                            JComboBox<String> comboBox = (JComboBox<String>) editorComponent;
-                            String selectedValue = (String) comboBox.getSelectedItem();
-
-                            stmt.setString(1, selectedValue);
-                            stmt.setDate(2, Date.valueOf(tanggal));
-                            stmt.setInt(3, id);
-                            stmt.setDate(4, Date.valueOf(tanggal));
-
-                            stmt.executeUpdate();
-                        }
+            int idPertemuan = 0;
+            try (PreparedStatement stmtLastID = conn.prepareStatement(lastID)) {
+                stmtLastID.setDate(1, Date.valueOf(tanggal));
+                try (ResultSet rs = stmtLastID.executeQuery()) {
+                    if (rs.next()) {
+                        idPertemuan = rs.getInt("id_pertemuan");
                     }
                 }
-            } else {
-                stmt = conn.prepareStatement(insert);
-                for (int row = 0; row < model.getRowCount(); row++) {
-                    abs = Integer.parseInt((String) model.getValueAt(row, 0));
-                    kls = (String) kelas.getSelectedItem();
-                    id = getSiswaId(kls, abs);
-                    System.out.println(id);
+            }
 
-                    TableCellEditor editor = jTable1.getColumnModel().getColumn(3).getCellEditor();
-                    Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 3), false, row, 3);
+            for (int row = 0; row < model.getRowCount(); row++) {
+                String nis = model.getValueAt(row, 0).toString();
+
+                PreparedStatement stmtverif = conn.prepareStatement(verif);
+                stmtverif.setInt(1, idPertemuan);
+                stmtverif.setInt(2, Integer.parseInt(nis));
+                ResultSet rsverif = stmtverif.executeQuery();
+
+                if (!rsverif.next()) {
+                    PreparedStatement stmtAbsen = conn.prepareStatement(insertAbsen);
+
+                    TableCellEditor editor = jTable1.getColumnModel().getColumn(4).getCellEditor();
+                    Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 4), false, row, 4);
 
                     if (editorComponent instanceof JComboBox) {
                         JComboBox<String> comboBox = (JComboBox<String>) editorComponent;
                         String selectedValue = (String) comboBox.getSelectedItem();
 
-                        stmt.setString(1, selectedValue);
-                        stmt.setDate(2, Date.valueOf(tanggal));
-                        stmt.setInt(3, id);
+                        stmtAbsen.setInt(1, Integer.parseInt(nis));
+                        stmtAbsen.setString(3, selectedValue);
+                        stmtAbsen.setInt(2, idPertemuan);
 
-                        stmt.executeUpdate();
+                        stmtAbsen.executeUpdate();
+                    }
+                } else {
+                    PreparedStatement stmtAbsen = conn.prepareStatement(updateAbsen);
+
+                    TableCellEditor editor = jTable1.getColumnModel().getColumn(4).getCellEditor();
+                    Component editorComponent = editor.getTableCellEditorComponent(jTable1, jTable1.getValueAt(row, 4), false, row, 4);
+
+                    if (editorComponent instanceof JComboBox) {
+                        JComboBox<String> comboBox = (JComboBox<String>) editorComponent;
+                        String selectedValue = (String) comboBox.getSelectedItem();
+
+                        stmtAbsen.setInt(1, Integer.parseInt(nis));
+                        stmtAbsen.setInt(3, idPertemuan);
+                        stmtAbsen.setString(2, selectedValue);
+                        stmtAbsen.setInt(4, Integer.parseInt(nis));
+
+                        stmtAbsen.executeUpdate();
                     }
                 }
+
             }
 
             JOptionPane.showMessageDialog(this, "Absen pada tanggal " + tanggal + " Disimpan");
