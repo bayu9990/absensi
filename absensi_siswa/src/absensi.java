@@ -119,7 +119,7 @@ public class absensi extends javax.swing.JFrame {
             if (rsPertemuan != null) {
                 while (rs.next()) {
                     int id = rs.getInt("nis");
-                    String keterangan = "";
+                    String keterangan = "Hadir";
 
                     rsPertemuan.beforeFirst();
                     while (rsPertemuan.next()) {
@@ -151,6 +151,90 @@ public class absensi extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error loading data : " + ex.getMessage());
         }
     }
+
+ private void presensi() {
+    PreparedStatement psHadir = null;
+    PreparedStatement psTotal = null;
+    PreparedStatement psInsert = null;
+    ResultSet rsHadir = null;
+    ResultSet rsTotal = null;
+
+    try {
+        // Query untuk menghitung jumlah kehadiran (KET = 'HADIR')
+        String queryHadir = "SELECT a.nis, COUNT(*) AS jumlah_hadir "
+                            + "FROM absen a "
+                            + "WHERE a.KET = 'hadir' "
+                            + "GROUP BY a.nis";
+        psHadir = conn.prepareStatement(queryHadir);
+        rsHadir = psHadir.executeQuery();
+
+        while (rsHadir.next()) {
+            int nis = rsHadir.getInt("nis");
+            int jumlahHadir = rsHadir.getInt("jumlah_hadir");
+
+            // Query untuk menghitung total absen (KET = 'HADIR', 'IZIN', 'ALPHA')
+            String queryTotal = "SELECT COUNT(*) AS jumlah_total "
+                                + "FROM absen "
+                                + "WHERE nis = ? AND KET IN ('hadir', 'izin', 'alpha')";
+            psTotal = conn.prepareStatement(queryTotal);
+            psTotal.setInt(1, nis);
+            rsTotal = psTotal.executeQuery();
+
+            if (rsTotal.next()) {
+                int jumlahTotal = rsTotal.getInt("jumlah_total");
+
+                if (jumlahTotal > 0) {
+                    // Menghitung persentase kehadiran
+                    double persentaseHadir = (double) jumlahHadir / jumlahTotal * 100;
+
+                    // Mengambil nama dan kelas siswa dari tabel siswa
+                    String siswaQuery = "SELECT nama, kelas FROM siswa WHERE nis = ?";
+                    PreparedStatement psSiswa = conn.prepareStatement(siswaQuery);
+                    psSiswa.setInt(1, nis);
+                    ResultSet rsSiswa = psSiswa.executeQuery();
+
+                    String nama = "";
+                    String kelas = "";
+                    if (rsSiswa.next()) {
+                        nama = rsSiswa.getString("nama");
+                        kelas = rsSiswa.getString("kelas");
+                    }
+
+                    // Insert atau update persentase kehadiran ke tabel persentase
+                    String insertQuery = "INSERT INTO persentase (nis, kelas, nama, persentase) "
+                                        + "VALUES (?, ?, ?, ?) "
+                                        + "ON DUPLICATE KEY UPDATE persentase = VALUES(persentase)";
+                    psInsert = conn.prepareStatement(insertQuery);
+                    psInsert.setInt(1, nis);
+                    psInsert.setString(2, kelas);
+                    psInsert.setString(3, nama);
+                    psInsert.setDouble(4, persentaseHadir);
+                    psInsert.executeUpdate();
+
+                    // Menutup ResultSet dan PreparedStatement psSiswa
+                    if (rsSiswa != null) rsSiswa.close();
+                    if (psSiswa != null) psSiswa.close();
+                }
+            }
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        // Menutup semua koneksi dan pernyataan
+        try {
+            if (rsHadir != null) rsHadir.close();
+            if (rsTotal != null) rsTotal.close();
+            if (psHadir != null) psHadir.close();
+            if (psTotal != null) psTotal.close();
+            if (psInsert != null) psInsert.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+ 
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -360,6 +444,7 @@ public class absensi extends javax.swing.JFrame {
             }
 
             JOptionPane.showMessageDialog(this, "Absen pada tanggal " + tanggal + " Disimpan");
+            presensi();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error menyimpan absen : " + ex.getMessage());
         }
