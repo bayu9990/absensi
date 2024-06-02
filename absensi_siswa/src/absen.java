@@ -34,6 +34,7 @@ public class absen extends javax.swing.JFrame {
         rekap_bulanan = new javax.swing.JButton();
         admin = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
+        performa = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -82,25 +83,35 @@ public class absen extends javax.swing.JFrame {
             }
         });
 
+        performa.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        performa.setText("Performa siswa");
+        performa.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                performaActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(211, Short.MAX_VALUE)
+                .addContainerGap(191, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(absensi)
+                        .addGap(18, 18, 18)
+                        .addComponent(rekap_mingguan)
+                        .addGap(18, 18, 18)
+                        .addComponent(rekap_bulanan)
+                        .addGap(18, 18, 18)
+                        .addComponent(performa)
+                        .addGap(18, 18, 18)
+                        .addComponent(admin)
+                        .addGap(166, 166, 166))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addGap(366, 366, 366))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(absensi)
-                        .addGap(44, 44, 44)
-                        .addComponent(rekap_mingguan)
-                        .addGap(46, 46, 46)
-                        .addComponent(rekap_bulanan)
-                        .addGap(40, 40, 40)
-                        .addComponent(admin)
-                        .addGap(204, 204, 204))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(351, 351, 351))))
@@ -112,10 +123,11 @@ public class absen extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addGap(180, 180, 180)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(admin)
                     .addComponent(rekap_bulanan)
                     .addComponent(rekap_mingguan)
-                    .addComponent(absensi))
+                    .addComponent(absensi)
+                    .addComponent(performa)
+                    .addComponent(admin))
                 .addGap(38, 38, 38)
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(174, Short.MAX_VALUE))
@@ -161,6 +173,13 @@ public class absen extends javax.swing.JFrame {
         login.setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void performaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_performaActionPerformed
+        // TODO add your handling code here:
+        this.dispose();
+        performasiswa ps = new performasiswa();
+        ps.setVisible(true);
+    }//GEN-LAST:event_performaActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -201,6 +220,7 @@ public class absen extends javax.swing.JFrame {
     private javax.swing.JButton admin;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JButton performa;
     private javax.swing.JButton rekap_bulanan;
     private javax.swing.JButton rekap_mingguan;
     // End of variables declaration//GEN-END:variables
