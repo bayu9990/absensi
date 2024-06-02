@@ -68,23 +68,6 @@ public class absensi extends javax.swing.JFrame {
         }
     }
 
-    private int getSiswaId(String kelas, int absen) {
-        int ids = 0;
-        try {
-            String query = "SELECT id FROM siswa WHERE kelas = ? AND no_absen = ?";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setString(1, kelas);
-            stmt.setInt(2, absen);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                ids = rs.getInt("id");
-            }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error loading data : " + ex.getMessage());
-        }
-        return ids;
-    }
-
     private ResultSet loadKeterangan(Date dates) {
         ResultSet rsAbsen = null;
         try {
@@ -142,7 +125,8 @@ public class absensi extends javax.swing.JFrame {
                         rs.getInt("nis"),
                         rs.getString("no_absen"),
                         rs.getString("nama"),
-                        rs.getString("kelas")
+                        rs.getString("kelas"),
+                        "Hadir"
                     });
                 }
             }
@@ -160,7 +144,6 @@ public class absensi extends javax.swing.JFrame {
     ResultSet rsTotal = null;
 
     try {
-        // Query untuk menghitung jumlah kehadiran (KET = 'HADIR')
         String queryHadir = "SELECT a.nis, COUNT(*) AS jumlah_hadir "
                             + "FROM absen a "
                             + "WHERE a.KET = 'hadir' "
@@ -172,7 +155,6 @@ public class absensi extends javax.swing.JFrame {
             int nis = rsHadir.getInt("nis");
             int jumlahHadir = rsHadir.getInt("jumlah_hadir");
 
-            // Query untuk menghitung total absen (KET = 'HADIR', 'IZIN', 'ALPHA')
             String queryTotal = "SELECT COUNT(*) AS jumlah_total "
                                 + "FROM absen "
                                 + "WHERE nis = ? AND KET IN ('hadir', 'izin', 'alpha')";
@@ -184,10 +166,8 @@ public class absensi extends javax.swing.JFrame {
                 int jumlahTotal = rsTotal.getInt("jumlah_total");
 
                 if (jumlahTotal > 0) {
-                    // Menghitung persentase kehadiran
                     double persentaseHadir = (double) jumlahHadir / jumlahTotal * 100;
 
-                    // Mengambil nama dan kelas siswa dari tabel siswa
                     String siswaQuery = "SELECT nama, kelas FROM siswa WHERE nis = ?";
                     PreparedStatement psSiswa = conn.prepareStatement(siswaQuery);
                     psSiswa.setInt(1, nis);
@@ -200,7 +180,6 @@ public class absensi extends javax.swing.JFrame {
                         kelas = rsSiswa.getString("kelas");
                     }
 
-                    // Insert atau update persentase kehadiran ke tabel persentase
                     String insertQuery = "INSERT INTO persentase (nis, kelas, nama, persentase) "
                                         + "VALUES (?, ?, ?, ?) "
                                         + "ON DUPLICATE KEY UPDATE persentase = VALUES(persentase)";
@@ -211,7 +190,6 @@ public class absensi extends javax.swing.JFrame {
                     psInsert.setDouble(4, persentaseHadir);
                     psInsert.executeUpdate();
 
-                    // Menutup ResultSet dan PreparedStatement psSiswa
                     if (rsSiswa != null) rsSiswa.close();
                     if (psSiswa != null) psSiswa.close();
                 }
@@ -221,7 +199,6 @@ public class absensi extends javax.swing.JFrame {
     } catch (SQLException e) {
         e.printStackTrace();
     } finally {
-        // Menutup semua koneksi dan pernyataan
         try {
             if (rsHadir != null) rsHadir.close();
             if (rsTotal != null) rsTotal.close();
