@@ -1,11 +1,12 @@
 
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-
 /**
  *
  * @author muhro
@@ -17,6 +18,9 @@ public class absen extends javax.swing.JFrame {
      */
     public absen() {
         initComponents();
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        }catch(Exception ignore){}
     }
 
     /**
@@ -28,109 +32,178 @@ public class absen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
         absensi = new javax.swing.JButton();
         rekap_mingguan = new javax.swing.JButton();
         rekap_bulanan = new javax.swing.JButton();
-        admin = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
         performa = new javax.swing.JButton();
+        admin = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel1.setText("Selamat Datang");
+        jPanel1.setBackground(new java.awt.Color(248, 249, 249));
 
+        absensi.setBackground(new java.awt.Color(248, 249, 249));
         absensi.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        absensi.setForeground(new java.awt.Color(53, 96, 97));
         absensi.setText("Absensi");
+        absensi.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(53, 96, 97), 3));
+        absensi.setContentAreaFilled(false);
+        absensi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        absensi.setFocusPainted(false);
         absensi.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 absensiActionPerformed(evt);
             }
         });
 
+        rekap_mingguan.setBackground(new java.awt.Color(248, 249, 249));
         rekap_mingguan.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        rekap_mingguan.setForeground(new java.awt.Color(53, 96, 97));
         rekap_mingguan.setText("Rekap Mingguan");
+        rekap_mingguan.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(53, 96, 97), 3));
+        rekap_mingguan.setContentAreaFilled(false);
+        rekap_mingguan.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        rekap_mingguan.setFocusPainted(false);
         rekap_mingguan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 rekap_mingguanActionPerformed(evt);
             }
         });
 
+        rekap_bulanan.setBackground(new java.awt.Color(248, 249, 249));
         rekap_bulanan.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        rekap_bulanan.setForeground(new java.awt.Color(53, 96, 97));
         rekap_bulanan.setText("Rekap Bulanan");
+        rekap_bulanan.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(53, 96, 97), 3));
+        rekap_bulanan.setContentAreaFilled(false);
+        rekap_bulanan.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        rekap_bulanan.setFocusPainted(false);
         rekap_bulanan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 rekap_bulananActionPerformed(evt);
             }
         });
 
-        admin.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        admin.setText("Admin");
-        admin.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                adminActionPerformed(evt);
-            }
-        });
-
-        jButton1.setBackground(new java.awt.Color(255, 51, 51));
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(255, 255, 255));
-        jButton1.setText("Log Out");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
+        performa.setBackground(new java.awt.Color(248, 249, 249));
         performa.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        performa.setForeground(new java.awt.Color(53, 96, 97));
         performa.setText("Performa siswa");
+        performa.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(53, 96, 97), 3));
+        performa.setContentAreaFilled(false);
+        performa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        performa.setFocusPainted(false);
         performa.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 performaActionPerformed(evt);
             }
         });
 
+        admin.setBackground(new java.awt.Color(248, 249, 249));
+        admin.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        admin.setForeground(new java.awt.Color(53, 96, 97));
+        admin.setText("Admin");
+        admin.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(53, 96, 97), 3, true));
+        admin.setContentAreaFilled(false);
+        admin.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        admin.setFocusPainted(false);
+        admin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                adminActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(78, 78, 78)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(absensi, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(31, 31, 31)
+                        .addComponent(admin, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(rekap_bulanan, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(31, 31, 31)
+                        .addComponent(performa, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(rekap_mingguan, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(65, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(101, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(absensi, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(admin, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(31, 31, 31)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(rekap_bulanan, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(performa, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(33, 33, 33)
+                .addComponent(rekap_mingguan, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(79, 79, 79))
+        );
+
+        jPanel2.setBackground(new java.awt.Color(71, 110, 110));
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel1.setText("Selamat Datang");
+
+        jButton1.setBackground(new java.awt.Color(255, 102, 102));
+        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(255, 255, 255));
+        jButton1.setText("Keluar");
+        jButton1.setBorder(null);
+        jButton1.setBorderPainted(false);
+        jButton1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton1.setFocusPainted(false);
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addContainerGap(68, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(111, 111, 111)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(64, 64, 64))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap(191, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(absensi)
-                        .addGap(18, 18, 18)
-                        .addComponent(rekap_mingguan)
-                        .addGap(18, 18, 18)
-                        .addComponent(rekap_bulanan)
-                        .addGap(18, 18, 18)
-                        .addComponent(performa)
-                        .addGap(18, 18, 18)
-                        .addComponent(admin)
-                        .addGap(166, 166, 166))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(366, 366, 366))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(351, 351, 351))))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addComponent(jLabel1)
-                .addGap(180, 180, 180)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(rekap_bulanan)
-                    .addComponent(rekap_mingguan)
-                    .addComponent(absensi)
-                    .addComponent(performa)
-                    .addComponent(admin))
-                .addGap(38, 38, 38)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(174, Short.MAX_VALUE))
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
@@ -147,14 +220,14 @@ public class absen extends javax.swing.JFrame {
     private void rekap_mingguanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rekap_mingguanActionPerformed
         // TODO add your handling code here:
         this.dispose();
-        rekapminggu rm = new rekapminggu ();
+        rekapminggu rm = new rekapminggu();
         rm.setVisible(true);
     }//GEN-LAST:event_rekap_mingguanActionPerformed
 
     private void rekap_bulananActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rekap_bulananActionPerformed
         // TODO add your handling code here:
         this.dispose();
-        rekapbulan rb = new rekapbulan ();
+        rekapbulan rb = new rekapbulan();
         rb.setVisible(true);
     }//GEN-LAST:event_rekap_bulananActionPerformed
 
@@ -220,6 +293,8 @@ public class absen extends javax.swing.JFrame {
     private javax.swing.JButton admin;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JButton performa;
     private javax.swing.JButton rekap_bulanan;
     private javax.swing.JButton rekap_mingguan;
