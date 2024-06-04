@@ -1,9 +1,9 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import javax.swing.JOptionPane;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import javax.swing.JComboBox;
 import javax.swing.table.DefaultTableModel;
 
@@ -24,55 +24,185 @@ public class rekapminggu extends javax.swing.JFrame {
     public rekapminggu() {
         initComponents();
         conn = koneksi.getKoneksi();
-        loadKelasData();
+        setTitle("Rekap Mingguan");
+        setTanggalPertemuan();
+        setKelas(kelas);
+        setNama(nama);
     }
-    
-    private void loadKelasData() {
-        try {
-            String query = "SELECT DISTINCT kelas FROM siswa";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            ResultSet rs = stmt.executeQuery();
-            
+
+    private void setTanggalPertemuan() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar cal = Calendar.getInstance();
+
+        cal.add(Calendar.DAY_OF_YEAR, -7);
+        String startDate = sdf.format(cal.getTime());
+        String endDate = sdf.format(Calendar.getInstance().getTime());
+        String dateRange = "Periode: " + startDate + " - " + endDate;
+
+        tgl.setText(dateRange);
+    }
+
+    private void setKelas(JComboBox<String> comboBox) {
+        comboBox.addItem("--Pilih--");
+        String sql = "SELECT DISTINCT kelas FROM siswa WHERE kelas IS NOT NULL";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
-                kelas.addItem(rs.getString("kelas"));
+                String kelas = rs.getString("kelas");
+                comboBox.addItem(kelas);
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error loading kelas data: " + ex.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
-    
-    private void loadNamaData(String selectedKelas) {
-        try {
-            String query = "SELECT DISTINCT nama FROM siswa WHERE kelas = ?";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setString(1, selectedKelas);
-            ResultSet rs = stmt.executeQuery();
-            
-            nama.removeAllItems();
-            nama.addItem("-Pilih-");
+
+    private void setNama(JComboBox<String> comboBox) {
+        comboBox.addItem("--Pilih--"); // Add the default selection item
+        String sql = "SELECT DISTINCT nama FROM siswa WHERE nama IS NOT NULL";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
-                nama.addItem(rs.getString("nama"));
+                String nama = rs.getString("nama");
+                comboBox.addItem(nama);
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error loading nama data: " + ex.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
-    
-    private void loadPertemuanData(String selectedKelas) {
-        try {
-            String query = "SELECT DISTINCT pertemuan FROM siswa WHERE kelas = ?";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setString(1, selectedKelas);
-            ResultSet rs = stmt.executeQuery();
-            
-            pertemuan.removeAllItems();
-            pertemuan.addItem("-Pilih-");
+
+    private void tampilkanDataAbsensi(String selectedKelas, String selectedDateRange) {
+        String[] dateRange = selectedDateRange.split(" - ");
+        String startDate = dateRange[0];
+        String endDate = dateRange[1];
+
+        String sql = "SELECT s.nis, s.nama, "
+                   + "SUM(CASE WHEN a.ket = 'hadir' THEN 1 ELSE 0 END) AS Hadir, "
+                   + "SUM(CASE WHEN a.ket = 'izin' THEN 1 ELSE 0 END) AS Izin, "
+                   + "SUM(CASE WHEN a.ket = 'sakit' THEN 1 ELSE 0 END) AS Sakit, "
+                   + "SUM(CASE WHEN a.ket = 'alpha' THEN 1 ELSE 0 END) AS Alpha "
+                   + "FROM siswa s "
+                   + "LEFT JOIN absen a ON s.nis = a.nis "
+                   + "LEFT JOIN pertemuan p ON a.id_pertemuan = p.id_pertemuan "
+                   + "WHERE s.kelas = ? AND p.tgl BETWEEN ? AND ? "
+                   + "GROUP BY s.nis, s.nama";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, selectedKelas);
+            ps.setString(2, startDate);
+            ps.setString(3, endDate);
+
+            ResultSet rs = ps.executeQuery();
+            DefaultTableModel model = (DefaultTableModel) jTable2.getModel();
+            model.setRowCount(0);
+
             while (rs.next()) {
-                pertemuan.addItem(rs.getString("pertemuan"));
+                Object[] row = {
+                    rs.getString("nis"),
+                    rs.getString("nama"),
+                    rs.getInt("Hadir"),
+                    rs.getInt("Izin"),
+                    rs.getInt("Sakit"),
+                    rs.getInt("Alpha")
+                };
+                model.addRow(row);
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error loading pertemuan data: " + ex.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void tampilkanDataAbsensiPerKelas(String selectedKelas, String selectedDateRange) {
+        String[] dateRange = selectedDateRange.split(" - ");
+        String startDate = dateRange[0];
+        String endDate = dateRange[1];
+
+        String sql = "SELECT a.ket AS Keterangan, COUNT(a.ket) AS JumlahTotal "
+                   + "FROM absen a "
+                   + "JOIN siswa s ON a.nis = s.nis "
+                   + "JOIN pertemuan p ON a.id_pertemuan = p.id_pertemuan "
+                   + "WHERE s.kelas = ? AND p.tgl BETWEEN ? AND ? "
+                   + "GROUP BY a.ket";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, selectedKelas);
+            ps.setString(2, startDate);
+            ps.setString(3, endDate);
+
+            ResultSet rs = ps.executeQuery();
+            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+            model.setRowCount(0); // Clear existing data
+
+            while (rs.next()) {
+                Object[] row = {
+                    rs.getString("Keterangan"),
+                    rs.getInt("JumlahTotal")
+                };
+                model.addRow(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void tampilkanDataAbsensiPerSiswa(String selectedNama, String selectedKelas, String selectedDateRange) {
+        String[] dateRange = selectedDateRange.split(" - ");
+        String startDate = dateRange[0];
+        String endDate = dateRange[1];
+
+        String sql = "SELECT s.nis, s.nama, "
+                   + "SUM(CASE WHEN a.ket = 'hadir' THEN 1 ELSE 0 END) AS Hadir, "
+                   + "SUM(CASE WHEN a.ket = 'izin' THEN 1 ELSE 0 END) AS Izin, "
+                   + "SUM(CASE WHEN a.ket = 'sakit' THEN 1 ELSE 0 END) AS Sakit, "
+                   + "SUM(CASE WHEN a.ket = 'alpha' THEN 1 ELSE 0 END) AS Alpha "
+                   + "FROM siswa s "
+                   + "LEFT JOIN absen a ON s.nis = a.nis "
+                   + "LEFT JOIN pertemuan p ON a.id_pertemuan = p.id_pertemuan "
+                   + "WHERE s.nama = ? AND s.kelas = ? AND p.tgl BETWEEN ? AND ? "
+                   + "GROUP BY s.nis, s.nama";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, selectedNama);
+            ps.setString(2, selectedKelas);
+            ps.setString(3, startDate);
+            ps.setString(4, endDate);
+
+            ResultSet rs = ps.executeQuery();
+            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+            model.setRowCount(0); // Clear existing data
+
+            while (rs.next()) {
+                Object[] row = {
+                    rs.getString("nis"),
+                    rs.getString("nama"),
+                    rs.getInt("Hadir"),
+                    rs.getInt("Izin"),
+                    rs.getInt("Sakit"),
+                    rs.getInt("Alpha")
+                };
+                model.addRow(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setTable1ColumnsForClassAggregation() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setColumnIdentifiers(new Object[] { "Keterangan", "Jumlah Total" });
+    }
+
+    private void setTable1ColumnsForStudentDetails() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setColumnIdentifiers(new Object[] { "NIS", "Nama", "Hadir", "Izin", "Sakit", "Alpha" });
+    }
+
+    private void clearTable1() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
     }
     
     /**
@@ -84,25 +214,23 @@ public class rekapminggu extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
         kelas = new javax.swing.JComboBox<>();
         nama = new javax.swing.JComboBox<>();
-        pertemuan = new javax.swing.JComboBox<>();
         submit = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
+        jLabel4 = new javax.swing.JLabel();
+        tgl = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(953, 527));
-
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel1.setText("Rekap Mingguan");
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel2.setText("Nama");
@@ -110,27 +238,15 @@ public class rekapminggu extends javax.swing.JFrame {
         jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel3.setText("Kelas");
 
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel4.setText("Pertemuan");
-
-        kelas.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-Pilih-" }));
         kelas.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 kelasActionPerformed(evt);
             }
         });
 
-        nama.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-Pilih-" }));
         nama.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 namaActionPerformed(evt);
-            }
-        });
-
-        pertemuan.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-Pilih-" }));
-        pertemuan.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                pertemuanActionPerformed(evt);
             }
         });
 
@@ -143,13 +259,13 @@ public class rekapminggu extends javax.swing.JFrame {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+                {},
+                {},
+                {},
+                {}
             },
             new String [] {
-                "Kelas", "Nama", "Hadir", "Izin", "Alpha"
+
             }
         ));
         jScrollPane1.setViewportView(jTable1);
@@ -167,274 +283,140 @@ public class rekapminggu extends javax.swing.JFrame {
         ));
         jScrollPane2.setViewportView(jTable2);
 
-        jButton1.setText("kembali");
+        jPanel1.setBackground(new java.awt.Color(71, 110, 110));
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel1.setText("REKAP MINGGUAN");
+
+        jButton1.setBackground(new java.awt.Color(56, 87, 87));
+        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(255, 255, 255));
+        jButton1.setText("Kembali");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
 
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(26, 26, 26)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(201, 201, 201)
+                .addComponent(jLabel1)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel4.setText("Pertemuan Minggu");
+
+        tgl.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        tgl.setText("Minggu");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGap(51, 51, 51)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(67, 67, 67)
-                        .addComponent(jLabel2)
-                        .addGap(226, 226, 226)
-                        .addComponent(jLabel3)
-                        .addGap(175, 175, 175)
-                        .addComponent(jLabel4))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 718, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(269, 269, 269)
-                                .addComponent(jLabel1))
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 718, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(jButton1))
+                        .addGap(72, 72, 72)
+                        .addComponent(nama, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(318, 318, 318)
-                                .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(53, 53, 53)
-                                .addComponent(nama, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(kelas, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(133, 133, 133)
-                        .addComponent(pertemuan, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 54, Short.MAX_VALUE))
+                        .addGap(94, 94, 94)
+                        .addComponent(jLabel2)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(tgl)
+                        .addGap(216, 216, 216)
+                        .addComponent(kelas, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(77, 77, 77))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(167, 167, 167)
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel3)
+                        .addGap(103, 103, 103))))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(366, 366, 366)
+                .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(43, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 743, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 743, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(43, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addGap(18, 18, 18)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
+                    .addComponent(jLabel4)
                     .addComponent(jLabel3)
-                    .addComponent(jLabel4))
+                    .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(kelas, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tgl)
                     .addComponent(nama, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pertemuan, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(kelas, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton1)
-                .addContainerGap(19, Short.MAX_VALUE))
+                .addContainerGap(34, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    
-    
-    private void pertemuanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pertemuanActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_pertemuanActionPerformed
-
     private void submitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitActionPerformed
         // TODO add your handling code here:
-        String selectedKelas = kelas.getSelectedItem().toString();
-        if (!selectedKelas.equals("-Pilih-")) {
-            loadWeeklyAttendanceData(selectedKelas);
-        } else {
-            JOptionPane.showMessageDialog(this, "Silakan pilih kelas terlebih dahulu.");
-        }
-        show_data();
-//        String selectedNama = nama.getSelectedItem().toString();
-//        String selectedKelas = kelas.getSelectedItem().toString();
-//        String selectedPertemuan = pertemuan.getSelectedItem().toString();
-//        
-//        try {
-//            String query = "SELECT * FROM siswa WHERE nama = ? AND kelas = ? AND pertemuan = ?";
-//            PreparedStatement stmt = conn.prepareStatement(query);
-//            stmt.setString(1, selectedNama);
-//            stmt.setString(2, selectedKelas);
-//            stmt.setString(3, selectedPertemuan);
-//            ResultSet rs = stmt.executeQuery();
-//            
-//            if (rs.next()) {
-//                String keterangan = rs.getString("keterangan");
-//                String message = "Nama: " + selectedNama + "\n"
-//                               + "Kelas: " + selectedKelas + "\n"
-//                               + "Pertemuan: " + selectedPertemuan + "\n"
-//                               + "Keterangan: " + keterangan;
-//                JOptionPane.showMessageDialog(this, message);
-//            } else {
-//                JOptionPane.showMessageDialog(this, "Data tidak ditemukan");
-//            }
-//        } catch (SQLException ex) {
-//            JOptionPane.showMessageDialog(this, "Error mengambil data: " + ex.getMessage());
-//        }
+            String selectedKelas = (String) kelas.getSelectedItem();
+            String selectedNama = (String) nama.getSelectedItem();
+
+            clearTable1(); // Clear the table first
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Calendar cal = Calendar.getInstance();
+
+            cal.add(Calendar.DAY_OF_YEAR, -7);
+            String startDate = sdf.format(cal.getTime());
+            String endDate = sdf.format(Calendar.getInstance().getTime());
+            String dateRange = startDate + " - " + endDate;
+
+            tampilkanDataAbsensi(selectedKelas, dateRange);
+            if (selectedNama != null && selectedKelas != null) {
+                setTable1ColumnsForStudentDetails();
+                tampilkanDataAbsensiPerSiswa(selectedNama, selectedKelas, dateRange);
+            } else if (selectedKelas != null) {
+                setTable1ColumnsForClassAggregation();
+                tampilkanDataAbsensiPerKelas(selectedKelas, dateRange);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih nama kelas atau siswa.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
     }//GEN-LAST:event_submitActionPerformed
-
-    public String ChooseId(JComboBox a){
-        String hsl = "";
-        try {
-            String sql = "SELECT * FROM siswa WHERE kelas='"+a.getSelectedItem()+"'";
-            java.sql.PreparedStatement pst = conn.prepareStatement(sql);
-            ResultSet rs = pst.executeQuery();
-            
-            while (rs.next()){
-                String result = rs.getString(1);
-                hsl = result;
-                
-            }
-            rs.last();
-            int data = rs.getRow();
-            rs.first();
-            
-        }catch(Exception e){
-            
-        } 
-    return hsl;
-    }
-    
-    public String TglBetween(JComboBox a) {
-	String myString = a.getSelectedItem().toString();
-        String[] splitString = myString.split(" - ");
-        String st1 = splitString[0];
-        String st2 = splitString[1];
-        String hsl = st1+"'"+" AND "+"'"+st2;
-    return hsl;
-    }
-    
-     public void scndtable(){
-        DefaultTableModel tabel = new DefaultTableModel();
-        tabel.addColumn("Nomor Absen");
-        tabel.addColumn("Nama");
-        tabel.addColumn("Hadir");
-        tabel.addColumn("Izin");
-        tabel.addColumn("Alpha");
-        try {
-            String sql = "SELECT no_absen, nama, SUM(keterangan = 'Hadir' AND kelas = '"+ChooseId(kelas)+"' AND pertemuan BETWEEN '"+ TglBetween(pertemuan) +"'), SUM(keterangan = 'Izin' AND kelas = '"+ChooseId(kelas)+"' AND pertemuan BETWEEN '"+ TglBetween(pertemuan) +"'), SUM(keterangan = 'Alpha' AND kelas = '"+ChooseId(kelas)+"' AND pertemuan BETWEEN '"+ TglBetween(pertemuan) +"') FROM siswa GROUP BY no_absen;";
-            System.out.println(sql);
-            java.sql.PreparedStatement stm = conn.prepareStatement(sql);
-            ResultSet rs =stm.executeQuery(sql);
-            while (rs.next()) {
-                tabel.addRow(new Object[]{
-                rs.getString(1),
-                rs.getString(2),
-                rs.getString(3),
-                rs.getString(4),
-                rs.getString(5)});
-            }
-            jTable2.setModel(tabel);
-        } catch (Exception e){
-            JOptionPane.showMessageDialog(null, "Error bro");
-            System.out.println(e.getMessage());
-        }
-    }
-    
-    private void loadWeeklyAttendanceData(String selectedKelas) {
-        try {
-            String query = "SELECT nama, kelas, pertemuan, keterangan FROM siswa WHERE kelas = ? ORDER BY pertemuan";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setString(1, selectedKelas);
-            ResultSet rs = stmt.executeQuery();
-            
-            DefaultTableModel model = new DefaultTableModel(new String[]{"Nama", "Kelas", "Pertemuan", "Keterangan"}, 0);
-            while (rs.next()) {
-                String nama = rs.getString("nama");
-                String kelas = rs.getString("kelas");
-                String pertemuan = rs.getString("pertemuan");
-                String keterangan = rs.getString("keterangan");
-                model.addRow(new Object[]{nama, kelas, pertemuan, keterangan});
-            }
-            jTable1.setModel(model);
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error mengambil data: " + ex.getMessage());
-        }
-    }
-    
-    public void show_data() {
-        String sql = "";
-        DefaultTableModel tabel = new DefaultTableModel();
-        tabel.addColumn("No Absen");
-        tabel.addColumn("Nama");
-        tabel.addColumn("Hadir");
-        tabel.addColumn("Izin");
-        tabel.addColumn("Alpha");
-
-        if (nama.getSelectedItem().equals("-Pilih-") && kelas.getSelectedItem().equals("-Pilih-")) {
-            // Case when both nama and kelas are not selected
-            try {
-                sql = "SELECT no_absen, nama, SUM(keterangan = 'Hadir'), SUM(keterangan = 'Izin'), SUM(keterangan = 'Alpha') FROM siswa GROUP BY no_absen";
-                System.out.println(sql);
-                java.sql.PreparedStatement stm = conn.prepareStatement(sql);
-                ResultSet rs = stm.executeQuery(sql);
-                while (rs.next()) {
-                    tabel.addRow(new Object[]{
-                        rs.getString(1),
-                        rs.getString(2),
-                        rs.getString(3),
-                        rs.getString(4),
-                        rs.getString(5)
-                    });
-                }
-                jTable2.setModel(tabel);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Error bro");
-                System.out.println(e.getMessage());
-            }
-        } else if (nama.getSelectedItem().equals("-Pilih-") && !kelas.getSelectedItem().equals("-Pilih-")) {
-            // Case when only kelas is selected
-            try {
-                sql = "SELECT no_absen, nama, SUM(keterangan = 'Hadir' AND kelas = '" + ChooseId(kelas) + "'), SUM(keterangan = 'Izin' AND kelas = '" + ChooseId(kelas) + "'), SUM(keterangan = 'Alpha' AND kelas = '" + ChooseId(kelas) + "') FROM siswa WHERE kelas = '" + ChooseId(kelas) + "' GROUP BY no_absen";
-                System.out.println(sql);
-                java.sql.PreparedStatement stm = conn.prepareStatement(sql);
-                ResultSet rs = stm.executeQuery(sql);
-                while (rs.next()) {
-                    tabel.addRow(new Object[]{
-                        rs.getString(1),
-                        rs.getString(2),
-                        rs.getString(3),
-                        rs.getString(4),
-                        rs.getString(5)
-                    });
-                }
-                jTable2.setModel(tabel);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Error");
-                System.out.println(e.getMessage());
-            }
-        } else {
-            // Case when both nama and kelas are selected
-            try {
-                sql = "SELECT no_absen, nama, SUM(keterangan = 'Hadir' AND kelas = '" + ChooseId(kelas) + "' AND no_absen = '" + ChooseId(nama) + "'), SUM(keterangan = 'Izin' AND kelas = '" + ChooseId(kelas) + "' AND no_absen = '" + ChooseId(nama) + "'), SUM(keterangan = 'Alpha' AND kelas = '" + ChooseId(kelas) + "' AND no_absen = '" + ChooseId(nama) + "') FROM siswa WHERE kelas = '" + ChooseId(kelas) + "' AND no_absen = '" + ChooseId(nama) + "' GROUP BY no_absen";
-                System.out.println(sql);
-                java.sql.PreparedStatement stm = conn.prepareStatement(sql);
-                ResultSet rs = stm.executeQuery(sql);
-                while (rs.next()) {
-                    tabel.addRow(new Object[]{
-                        rs.getString(1),
-                        rs.getString(2),
-                        rs.getString(3),
-                        rs.getString(4),
-                        rs.getString(5)
-                    });
-                }
-                jTable2.setModel(tabel);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Error bro");
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
     
     private void namaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_namaActionPerformed
         // TODO add your handling code here:
@@ -443,15 +425,12 @@ public class rekapminggu extends javax.swing.JFrame {
 
     private void kelasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_kelasActionPerformed
         // TODO add your handling code here:
-        String selectedKelas = (String) kelas.getSelectedItem();
-        loadNamaData(selectedKelas);
-        loadPertemuanData(selectedKelas);
     }//GEN-LAST:event_kelasActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-this.dispose();
+        this.dispose();
         absen absen = new absen();
-        absen.setVisible(true);        // TODO add your handling code here:
+        absen.setVisible(true);  
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -495,13 +474,14 @@ this.dispose();
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
     private javax.swing.JComboBox<String> kelas;
     private javax.swing.JComboBox<String> nama;
-    private javax.swing.JComboBox<String> pertemuan;
     private javax.swing.JButton submit;
+    private javax.swing.JLabel tgl;
     // End of variables declaration//GEN-END:variables
 }
