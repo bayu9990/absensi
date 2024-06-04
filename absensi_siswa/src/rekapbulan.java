@@ -357,7 +357,6 @@ private void setTable1ColumnsForStudentDetails() {
                                 .addGap(113, 113, 113)
                                 .addComponent(pertemuan, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel4)
                                 .addGap(37, 37, 37)))))
                 .addGap(110, 110, 110))
@@ -392,6 +391,7 @@ private void setTable1ColumnsForStudentDetails() {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void pertemuanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pertemuanActionPerformed
