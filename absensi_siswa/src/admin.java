@@ -423,8 +423,13 @@ public class admin extends javax.swing.JFrame {
     if (foundID != -1) {
             int confirm = JOptionPane.showConfirmDialog(null, "Apakah Anda yakin ingin menghapus data?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
+ 
                 try {
-                    String sql = "DELETE FROM siswa WHERE id = ?";
+                    String del = "DELETE FROM absen WHERE nis = ?";
+                    PreparedStatement delsmt = conn.prepareStatement(del);
+                    delsmt.setInt(1, foundID);
+                    delsmt.executeUpdate();
+                    String sql = "DELETE FROM siswa WHERE nis = ?";
                     PreparedStatement stmnt = conn.prepareStatement(sql);
                     stmnt.setInt(1, foundID);
                     stmnt.executeUpdate();
