@@ -62,11 +62,11 @@ public class register extends javax.swing.JFrame {
 
         jPanel1.setBackground(new java.awt.Color(71, 110, 110));
 
-        logo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/logo.png"))); // NOI18N
+        logo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/logoSD.png"))); // NOI18N
 
         label_sd_atlantis.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         label_sd_atlantis.setForeground(new java.awt.Color(255, 255, 255));
-        label_sd_atlantis.setText("SD Atlantis");
+        label_sd_atlantis.setText("SDN SIDOSERMO I 427 SURABAYA");
 
         label_absensi_siswa.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         label_absensi_siswa.setForeground(new java.awt.Color(255, 255, 255));
@@ -77,12 +77,18 @@ public class register extends javax.swing.JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(68, 68, 68)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(label_sd_atlantis)
-                    .addComponent(label_absensi_siswa)
-                    .addComponent(logo))
-                .addContainerGap(78, Short.MAX_VALUE))
+                .addGap(95, 95, 95)
+                .addComponent(label_absensi_siswa)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(41, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(label_sd_atlantis)
+                        .addGap(33, 33, 33))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(logo)
+                        .addGap(95, 95, 95))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -91,7 +97,7 @@ public class register extends javax.swing.JFrame {
                 .addComponent(label_absensi_siswa)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(label_sd_atlantis)
-                .addGap(47, 47, 47)
+                .addGap(18, 18, 18)
                 .addComponent(logo, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -213,9 +219,7 @@ public class register extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
