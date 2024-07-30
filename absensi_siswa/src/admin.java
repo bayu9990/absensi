@@ -397,7 +397,7 @@ public class admin extends javax.swing.JFrame {
         // TODO add your handling code here:
         if (foundID != -1) {
             try {
-                String sql = "UPDATE siswa SET nama = ?, no_absen = ?, kelas = ?, jenis_kelamin = ? WHERE id = ?";
+                String sql = "UPDATE siswa SET nama = ?, no_absen = ?, kelas = ?, jenis_kelamin = ? WHERE nis = ?";
                 PreparedStatement stmnt = conn.prepareStatement(sql);
                 stmnt.setString(1, nama.getText());
                 stmnt.setString(2, no_absen.getText());
